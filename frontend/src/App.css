@@ -244,6 +244,12 @@
   margin-bottom: var(--space-5);
 }
 
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) 0;
+}
+
 .dl-grid {
   display: grid;
   grid-template-columns: 180px 1fr;

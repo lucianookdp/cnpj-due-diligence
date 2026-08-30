@@ -48,6 +48,12 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M16 17l5-5-5-5M21 12H9" />
     </>
   ),
+  "log-in": (
+    <>
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+      <path d="M10 17l5-5-5-5M15 12H3" />
+    </>
+  ),
   search: (
     <>
       <circle cx="11" cy="11" r="8" />

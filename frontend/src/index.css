@@ -256,6 +256,28 @@ button.btn-sm {
   font-size: 0.8125rem;
 }
 
+/* A <Link> styled to match .btn-sm needs its own rule: the button-chrome
+   rules above only ever targeted <button>, and anchors carry their own
+   default color/underline that would otherwise show through. */
+a.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+a.btn-sm:hover {
+  background: var(--color-surface-alt);
+}
+
 button.btn-icon {
   display: inline-flex;
   align-items: center;
