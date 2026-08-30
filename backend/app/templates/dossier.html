@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4; margin: 2cm; }
+    body { font-family: sans-serif; font-size: 11pt; color: #111827; }
+    h1 { font-size: 18pt; margin-bottom: 0; }
+    h2 { font-size: 13pt; margin-top: 24px; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+    .subtitle { color: #6b7280; margin-top: 4px; }
+    .alert {
+        background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+        border-radius: 6px; padding: 8px 12px; margin: 8px 0; font-size: 10pt;
+    }
+    dl { display: grid; grid-template-columns: 180px 1fr; row-gap: 4px; column-gap: 8px; }
+    dt { font-weight: 600; color: #374151; }
+    dd { margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10pt; }
+    .score-badge {
+        display: inline-block; font-size: 20pt; font-weight: 700; padding: 6px 16px;
+        border-radius: 8px; background: {{ score_bg }}; color: {{ score_fg }};
+        border: 1px solid {{ score_border }};
+    }
+    .rule-triggered { color: #111827; }
+    .rule-not-triggered { color: #9ca3af; }
+    footer {
+        margin-top: 32px; padding-top: 8px; border-top: 1px solid #d1d5db;
+        font-size: 9pt; color: #6b7280;
+    }
+    .graph-page { page-break-before: always; }
+    .graph-page svg { width: 100%; height: auto; margin-top: 12px; }
+    .graph-legend { font-size: 9pt; color: #6b7280; margin-top: 8px; }
+    .legend-swatch {
+        display: inline-block; width: 10px; height: 10px; margin-right: 4px;
+        vertical-align: middle; border-radius: 2px;
+    }
+</style>
+</head>
+<body>
+    <h1>{{ company.razao_social }}</h1>
+    {% if company.nome_fantasia %}<p class="subtitle">{{ company.nome_fantasia }}</p>{% endif %}
+
+    {% for m in company.restrictive_list_matches %}
+    <div class="alert">
+        <strong>{{ m.list_type|upper }}</strong>
+        {% if m.reason %} — {{ m.reason }}{% endif %}
+        {% if m.source_org %} ({{ m.source_org }}){% endif %}
+        {% if m.sanction_start_date %} · desde {{ m.sanction_start_date.strftime('%d/%m/%Y') }}{% endif %}
+    </div>
+    {% endfor %}
+
+    <h2>Dados cadastrais</h2>
+    <dl>
+        <dt>CNPJ</dt><dd>{{ company.cnpj }}</dd>
+        <dt>Situação cadastral</dt>
+        <dd>{{ company.situacao_cadastral }}{% if company.situacao_cadastral_data %} ({{ company.situacao_cadastral_data.strftime('%d/%m/%Y') }}){% endif %}</dd>
+        <dt>Abertura</dt><dd>{{ company.data_abertura.strftime('%d/%m/%Y') if company.data_abertura else '—' }}</dd>
+        <dt>Capital social</dt><dd>{{ company.capital_social if company.capital_social is not none else '—' }}</dd>
+        <dt>Porte</dt><dd>{{ company.porte or '—' }}</dd>
+        <dt>Natureza jurídica</dt><dd>{{ company.natureza_juridica_descricao or '—' }}</dd>
+        <dt>CNAE principal</dt><dd>{{ company.cnae_principal_codigo }} — {{ company.cnae_principal_descricao }}</dd>
+        <dt>Endereço</dt>
+        <dd>{{ company.logradouro }}, {{ company.numero }} {{ company.complemento or '' }} — {{ company.bairro }}, {{ company.municipio }}/{{ company.uf }} {{ company.cep }}</dd>
+    </dl>
+
+    <h2>Quadro societário</h2>
+    <table>
+        <thead><tr><th>Nome</th><th>Qualificação</th><th>Faixa etária</th><th>CPF</th></tr></thead>
+        <tbody>
+        {% for p in company.partners %}
+            <tr>
+                <td>{{ p.nome }}</td>
+                <td>{{ p.qualificacao or '—' }}</td>
+                <td>{{ p.faixa_etaria or '—' }}</td>
+                <td>{{ p.cpf_masked or '—' }}</td>
+            </tr>
+            {% for m in p.restrictive_list_matches %}
+            <tr><td colspan="4">
+                <div class="alert">{{ m.list_type|upper }}{% if m.reason %} — {{ m.reason }}{% endif %}</div>
+            </td></tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Score de risco</h2>
+    <p><span class="score-badge">{{ risk_score.score }}</span></p>
+    <table>
+        <thead><tr><th>Regra</th><th>Peso</th><th>Disparou?</th><th>Motivo</th></tr></thead>
+        <tbody>
+        {% for r in risk_score.results %}
+            <tr class="{{ 'rule-triggered' if r.triggered else 'rule-not-triggered' }}">
+                <td>{{ r.label }}</td>
+                <td>{{ r.weight }}</td>
+                <td>{{ 'Sim' if r.triggered else 'Não' }}</td>
+                <td>{{ r.reason or '—' }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <footer>
+        Fonte cadastral: {{ company.source_provider }} · Coletado em {{ company.source_collected_at.strftime('%d/%m/%Y %H:%M') }}.
+        Listas restritivas: CEIS/CNEP/CEPIM/Acordos de Leniência (Portal da Transparência/CGU),
+        Cadastro de Empregadores (Ministério do Trabalho e Emprego).
+        Motor de regras versão {{ risk_score.rules_version }}.
+        Relatório gerado em {{ generated_at.strftime('%d/%m/%Y %H:%M') }}.
+    </footer>
+
+    {% if graph_svg %}
+    <div class="graph-page">
+        <h2>Grafo societário</h2>
+        {% if graph_total_count > graph_shown_count %}
+        <p class="graph-legend">
+            Mostrando {{ graph_shown_count }} de {{ graph_total_count }} nós encontrados
+            (sócios diretos priorizados) — veja o grafo completo e interativo na plataforma.
+        </p>
+        {% endif %}
+        {{ graph_svg | safe }}
+        <p class="graph-legend">
+            <span class="legend-swatch" style="background: #4f46e5;"></span> Empresa
+            &nbsp;&nbsp;
+            <span class="legend-swatch" style="background: #16a34a; border-radius: 50%;"></span> Pessoa física
+        </p>
+    </div>
+    {% endif %}
+</body>
+</html>

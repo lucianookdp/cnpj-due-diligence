@@ -1,0 +1,351 @@
+# Synonym groups for the cnae_incompativel rule. Official CNAE wording is
+# often bureaucratic ("Treinamento de condutores") while users describe the
+# same business in everyday terms ("auto escola") that share zero words with
+# it — a plain keyword-overlap check flags that as a mismatch even though
+# it's the same activity. When the user's text matches any phrase in a
+# group, every phrase in that group is folded into the comparison, so a
+# match against the official wording elsewhere in the same group counts as
+# compatible. Extend this list as real mismatches turn up; it will never be
+# exhaustive against all ~1300 CNAE subclasses, only the common ones.
+groups:
+  # --- Automotivo ---
+  - - "auto escola"
+    - "autoescola"
+    - "escola de motorista"
+    - "aulas de direção"
+    - "treinamento de condutores"
+    - "formação de condutores"
+
+  - - "oficina mecânica"
+    - "conserto de carros"
+    - "conserto de veículos"
+    - "manutenção de veículos automotores"
+    - "reparação de veículos automotores"
+
+  - - "auto peças"
+    - "loja de peças automotivas"
+    - "comércio de peças e acessórios para veículos automotores"
+
+  - - "posto de gasolina"
+    - "posto de combustível"
+    - "comércio varejista de combustíveis para veículos automotores"
+
+  - - "lava-rápido"
+    - "lava rápido"
+    - "lavagem de carros"
+    - "lavagem de veículos"
+
+  - - "funilaria"
+    - "funilaria e pintura"
+    - "pintura de veículos automotores"
+
+  - - "estacionamento"
+    - "estacionamento de veículos"
+    - "gestão e administração da propriedade imobiliária"
+
+  - - "locadora de veículos"
+    - "aluguel de carros"
+    - "locação de automóveis sem condutor"
+
+  - - "borracharia"
+    - "conserto de pneus"
+    - "serviços de borracharia para veículos automotores"
+
+  # --- Alimentação ---
+  - - "padaria"
+    - "panificadora"
+    - "fabricação de produtos de panificação"
+
+  - - "restaurante"
+    - "casa de comidas"
+    - "restaurantes e outros estabelecimentos de serviços de alimentação"
+
+  - - "lanchonete"
+    - "casa de lanches"
+    - "serviços ambulantes de alimentação"
+
+  - - "pizzaria"
+    - "delivery de pizza"
+
+  - - "açougue"
+    - "casa de carnes"
+    - "comércio varejista de carnes"
+
+  - - "hortifruti"
+    - "quitanda"
+    - "comércio varejista de hortifrutigranjeiros"
+
+  - - "doceria"
+    - "confeitaria"
+    - "fabricação de produtos de confeitaria"
+
+  - - "sorveteria"
+    - "fabricação de sorvetes"
+
+  - - "bar"
+    - "botequim"
+    - "bares e outros estabelecimentos especializados em servir bebidas"
+
+  - - "food truck"
+    - "trailer de lanches"
+    - "comércio ambulante de alimentos preparados"
+
+  - - "distribuidora de bebidas"
+    - "depósito de bebidas"
+    - "comércio atacadista de bebidas"
+
+  - - "mercadinho"
+    - "mercearia"
+    - "empório"
+    - "comércio varejista de mercadorias em geral, com predominância de produtos alimentícios"
+
+  - - "adega"
+    - "loja de vinhos"
+    - "comércio varejista de bebidas"
+
+  # --- Beleza e estética ---
+  - - "salão de beleza"
+    - "cabeleireiro"
+    - "barbearia"
+    - "atividades de estética e outros serviços de cuidados com a beleza"
+
+  - - "manicure"
+    - "pedicure"
+    - "esmalteria"
+
+  - - "clínica de estética"
+    - "estética facial e corporal"
+
+  - - "estúdio de tatuagem"
+    - "tatuagem"
+    - "piercing"
+
+  - - "spa"
+    - "day spa"
+    - "atividades de bem-estar físico"
+
+  # --- Saúde ---
+  - - "farmácia"
+    - "drogaria"
+    - "comércio varejista de produtos farmacêuticos"
+
+  - - "clínica médica"
+    - "consultório médico"
+    - "atividade médica ambulatorial"
+
+  - - "dentista"
+    - "consultório odontológico"
+    - "atividade odontológica"
+
+  - - "clínica veterinária"
+    - "veterinário"
+    - "atividade veterinária"
+
+  - - "laboratório de exames"
+    - "laboratório de análises clínicas"
+
+  - - "fisioterapia"
+    - "clínica de fisioterapia"
+    - "atividades de fisioterapia"
+
+  - - "óptica"
+    - "ótica"
+    - "comércio varejista de artigos de óptica"
+
+  # --- Varejo e moda ---
+  - - "loja de roupas"
+    - "boutique"
+    - "comércio varejista de artigos do vestuário"
+
+  - - "sapataria"
+    - "loja de calçados"
+    - "comércio varejista de calçados"
+
+  - - "loja de móveis"
+    - "móveis planejados"
+    - "comércio varejista de móveis"
+
+  - - "papelaria"
+    - "comércio varejista de artigos de papelaria"
+
+  - - "livraria"
+    - "comércio varejista de livros"
+
+  - - "loja de eletrônicos"
+    - "loja de eletrodomésticos"
+    - "comércio varejista de eletrodomésticos"
+
+  - - "joalheria"
+    - "loja de joias"
+    - "comércio varejista de artigos de joalheria"
+
+  - - "loja de brinquedos"
+    - "comércio varejista de brinquedos e artigos recreativos"
+
+  - - "loja de informática"
+    - "assistência técnica de computadores"
+    - "reparação e manutenção de equipamentos de informática"
+
+  - - "conserto de celular"
+    - "assistência técnica de celular"
+    - "reparação de equipamentos de comunicação"
+
+  # --- Serviços profissionais ---
+  - - "escritório de contabilidade"
+    - "contabilidade"
+    - "atividades de contabilidade"
+
+  - - "escritório de advocacia"
+    - "advocacia"
+    - "atividades jurídicas"
+
+  - - "consultoria empresarial"
+    - "consultoria em gestão"
+    - "atividades de consultoria em gestão empresarial"
+
+  - - "escritório de arquitetura"
+    - "arquitetura"
+    - "serviços de arquitetura"
+
+  - - "escritório de engenharia"
+    - "engenharia"
+    - "serviços de engenharia"
+
+  - - "agência de publicidade"
+    - "propaganda"
+    - "agência de marketing"
+    - "publicidade"
+
+  - - "despachante"
+    - "despachante documentalista"
+
+  - - "tradutor"
+    - "tradução"
+    - "serviços de tradução e interpretação"
+
+  # --- Imóveis e construção ---
+  - - "imobiliária"
+    - "corretora de imóveis"
+    - "corretagem na compra e venda e avaliação de imóveis"
+
+  - - "construtora"
+    - "empreiteira"
+    - "construção de edifícios"
+
+  - - "reforma residencial"
+    - "pedreiro"
+    - "serviços especializados para construção"
+
+  - - "marcenaria"
+    - "fabricação de móveis sob encomenda"
+
+  - - "serralheria"
+    - "fabricação de esquadrias de metal"
+
+  - - "administradora de condomínios"
+    - "gestão de condomínios"
+
+  # --- Fitness, lazer e educação ---
+  - - "academia"
+    - "academia de ginástica"
+    - "condicionamento físico"
+
+  - - "escola de dança"
+    - "aulas de dança"
+
+  - - "escola de natação"
+    - "aulas de natação"
+
+  - - "escola de idiomas"
+    - "curso de inglês"
+    - "ensino de línguas"
+
+  - - "curso preparatório"
+    - "cursinho"
+    - "ensino preparatório para concursos"
+
+  - - "creche"
+    - "berçário"
+    - "educação infantil"
+
+  # --- Pets ---
+  - - "pet shop"
+    - "loja de animais"
+    - "comércio de animais vivos e de artigos e alimentos para animais de estimação"
+
+  - - "banho e tosa"
+    - "estética animal"
+
+  # --- Transporte e logística ---
+  - - "transportadora"
+    - "transporte de cargas"
+    - "transporte rodoviário de carga"
+
+  - - "empresa de mudanças"
+    - "serviços de mudança"
+
+  - - "motoboy"
+    - "entregador"
+    - "serviços de entrega rápida"
+
+  - - "táxi"
+    - "motorista de aplicativo"
+    - "transporte escolar"
+
+  # --- Limpeza e segurança ---
+  - - "empresa de limpeza"
+    - "faxina"
+    - "serviços combinados para apoio a edifícios"
+
+  - - "dedetização"
+    - "controle de pragas"
+    - "controle de pragas urbanas"
+
+  - - "empresa de segurança"
+    - "vigilância"
+    - "atividades de vigilância e segurança privada"
+
+  # --- Eventos ---
+  - - "buffet"
+    - "casa de festas"
+    - "fornecimento de alimentos preparados para eventos"
+
+  - - "decoração de eventos"
+    - "cerimonial"
+
+  - - "dj"
+    - "som para eventos"
+    - "locação de equipamentos de som"
+
+  # --- Gráfica e serviços diversos ---
+  - - "gráfica rápida"
+    - "copiadora"
+    - "xerox"
+    - "reprodução de documentos"
+
+  - - "lavanderia"
+    - "tinturaria"
+    - "lavanderias e tinturarias"
+
+  - - "chaveiro"
+    - "cópia de chaves"
+
+  # --- Hospedagem e turismo ---
+  - - "pousada"
+    - "hotel"
+    - "hostel"
+    - "hotéis e similares"
+
+  - - "agência de viagens"
+    - "agência de turismo"
+
+  # --- Agropecuária ---
+  - - "fazenda"
+    - "produção agrícola"
+    - "cultivo de lavouras"
+
+  - - "avicultura"
+    - "criação de aves"
+
+  - - "pecuária"
+    - "criação de bovinos"

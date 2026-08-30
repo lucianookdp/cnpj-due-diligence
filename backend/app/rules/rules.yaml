@@ -1,0 +1,51 @@
+# Versioned risk-rule config — weights and thresholds live here, not in code,
+# so tuning them doesn't require a deploy of new logic. Bump `version` on any
+# change; it's stamped on every computed score for audit/reproducibility.
+version: 1
+
+rules:
+  - id: empresa_recente
+    label: "Empresa aberta há menos de 6 meses"
+    weight: 15
+    enabled: true
+    params:
+      max_months: 6
+
+  - id: capital_social_irrisorio
+    label: "Capital social irrisório"
+    weight: 10
+    enabled: true
+    params:
+      min_capital: 1000
+
+  - id: situacao_cadastral_inativa
+    label: "Situação cadastral diferente de ativa"
+    weight: 20
+    enabled: true
+
+  - id: cnae_incompativel
+    label: "CNAE incompatível com a atividade esperada informada"
+    weight: 15
+    enabled: true
+
+  - id: endereco_compartilhado
+    label: "Endereço compartilhado por muitas empresas"
+    weight: 25
+    enabled: true
+    params:
+      threshold: 5
+
+  - id: quadro_societario_instavel
+    label: "Quadro societário alterado mais de duas vezes em 12 meses"
+    weight: 20
+    enabled: true
+    params:
+      max_changes: 2
+      window_months: 12
+
+  # Deliberately the highest weight on its own — any hit here should dominate
+  # the score regardless of everything else ("peso máximo" per spec).
+  - id: match_lista_restritiva
+    label: "Presença em lista restritiva"
+    weight: 100
+    enabled: true

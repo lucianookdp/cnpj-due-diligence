@@ -1,0 +1,22 @@
+name: Trigger monitoring worker
+
+on:
+  schedule:
+    # Every 6 hours. The scheduler only actually enqueues a restrictive-list
+    # refresh or a watchlist reprocess when one is due (see
+    # REPROCESS_INTERVAL_HOURS / RESTRICTIVE_LIST_INGEST_INTERVAL_HOURS),
+    # so extra runs in between are harmless no-ops.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the worker-trigger endpoint
+        env:
+          WORKER_TRIGGER_SECRET: ${{ secrets.WORKER_TRIGGER_SECRET }}
+        run: |
+          curl -sf -X POST \
+            -H "X-Worker-Secret: $WORKER_TRIGGER_SECRET" \
+            https://cnpj-due-diligence-api.onrender.com/api/v1/internal/worker/run-once

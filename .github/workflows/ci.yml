@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cnpj
+          POSTGRES_PASSWORD: cnpj
+          POSTGRES_DB: cnpj_due_diligence_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cnpj"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install WeasyPrint native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libcairo2
+
+      - name: Install dependencies
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install -e ".[dev]"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/backend/.venv
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Run tests
+        env:
+          # conftest.py derives the actual test DB as "<database>_test", matching
+          # the postgres service's POSTGRES_DB above — this must stay the un-suffixed name.
+          DATABASE_URL: postgresql+psycopg://cnpj:cnpj@localhost:5432/cnpj_due_diligence
+        run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check and build
+        run: npm run build
