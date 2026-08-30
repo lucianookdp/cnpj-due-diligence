@@ -118,43 +118,90 @@ function App() {
         </div>
       </div>
 
-      {authenticated ? (
-        <Watchlist key={watchlistVersion} onError={setError} />
-      ) : (
-        <AuthForm onAuthenticated={() => setAuthenticated(true)} />
-      )}
+      <div className="hero">
+        <span className="hero-badge">
+          <Icon name="shield" size={13} />
+          Fontes 100% públicas e oficiais
+        </span>
+        <h2 className="hero-title">Due diligence de qualquer empresa brasileira</h2>
+        <p className="hero-subtitle">
+          Dossiê cadastral, grafo societário, listas restritivas e score de risco explicável,
+          a partir de um CNPJ.
+        </p>
 
-      <form onSubmit={handleSearch} className="card search-card">
-        <div className="field-row" style={{ marginBottom: "var(--space-2)" }}>
+        <form onSubmit={handleSearch} className="card hero-search-form">
+          <div className="field-row" style={{ marginBottom: "var(--space-2)" }}>
+            <input
+              type="text"
+              value={cnpjInput}
+              onChange={(e) => setCnpjInput(e.target.value)}
+              placeholder="00.000.000/0000-00"
+            />
+            <button
+              type="submit"
+              className="btn-primary btn-with-icon"
+              disabled={loading || cnpjInput.trim().length === 0}
+            >
+              {loading ? "Consultando..." : (
+                <>
+                  <Icon name="search" size={16} />
+                  Consultar
+                </>
+              )}
+            </button>
+          </div>
           <input
             type="text"
-            value={cnpjInput}
-            onChange={(e) => setCnpjInput(e.target.value)}
-            placeholder="00.000.000/0000-00"
+            value={expectedActivityInput}
+            onChange={(e) => setExpectedActivityInput(e.target.value)}
+            placeholder="Atividade esperada da empresa (opcional, ex: venda de peças automotivas)"
           />
-          <button
-            type="submit"
-            className="btn-primary btn-with-icon"
-            disabled={loading || cnpjInput.trim().length === 0}
-          >
-            {loading ? "Consultando..." : (
-              <>
-                <Icon name="search" size={16} />
-                Consultar
-              </>
-            )}
-          </button>
-        </div>
-        <input
-          type="text"
-          value={expectedActivityInput}
-          onChange={(e) => setExpectedActivityInput(e.target.value)}
-          placeholder="Atividade esperada da empresa (opcional, ex: venda de peças automotivas)"
-        />
-      </form>
+        </form>
+      </div>
 
       {error && <div className="alert-banner alert-danger">{error}</div>}
       {watchlistNotice && <div className="alert-banner alert-success">{watchlistNotice}</div>}
+
+      {!company && (
+        <div className="feature-grid">
+          <div className="feature-card">
+            <span className="feature-icon">
+              <Icon name="building" size={20} />
+            </span>
+            <h3>Dossiê completo</h3>
+            <p>Dados cadastrais, quadro societário e histórico direto da Receita Federal.</p>
+          </div>
+          <div className="feature-card">
+            <span className="feature-icon">
+              <Icon name="network" size={20} />
+            </span>
+            <h3>Grafo societário</h3>
+            <p>Sócios em comum, endereços compartilhados e cadeias de participação.</p>
+          </div>
+          <div className="feature-card">
+            <span className="feature-icon">
+              <Icon name="shield" size={20} />
+            </span>
+            <h3>Score de risco</h3>
+            <p>Pontuação de 0 a 100, sempre explicando qual regra disparou e por quê.</p>
+          </div>
+          <div className="feature-card">
+            <span className="feature-icon">
+              <Icon name="bookmark" size={20} />
+            </span>
+            <h3>Monitoramento</h3>
+            <p>Acompanhe CNPJs na carteira e receba alerta quando algo relevante mudar.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="auth-wrap">
+        {authenticated ? (
+          <Watchlist key={watchlistVersion} onError={setError} />
+        ) : (
+          <AuthForm onAuthenticated={() => setAuthenticated(true)} />
+        )}
+      </div>
 
       {company && (
         <>
