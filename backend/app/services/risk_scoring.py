@@ -106,6 +106,26 @@ def _cnae_synonym_expansion(text: str) -> set[str]:
     return expansion
 
 
+_MIN_ROOT_LEN = 5
+
+
+def _shares_word_root(a: set[str], b: set[str], min_len: int = _MIN_ROOT_LEN) -> bool:
+    """True if any token in `a` shares a min_len-character prefix with any
+    token in `b`.
+
+    Handles Portuguese suffix variation a synonym list can't reasonably
+    enumerate: "atacado" vs "atacadista", "varejo" vs "varejista",
+    "comércio" vs "comercial" all share a long enough root that an exact
+    keyword-overlap check (or even the synonym expansion above) treats them
+    as completely unrelated words. Real language-aware stemming would be
+    more precise, but pulling in a stemmer library for one rule isn't worth
+    it when a shared-prefix check already catches the common cases cheaply.
+    """
+    prefixes_a = {t[:min_len] for t in a if len(t) >= min_len}
+    prefixes_b = {t[:min_len] for t in b if len(t) >= min_len}
+    return not prefixes_a.isdisjoint(prefixes_b)
+
+
 def _rule_empresa_recente(ctx: RiskContext, params: dict) -> str | None:
     if ctx.company.data_abertura is None:
         return None
@@ -138,7 +158,12 @@ def _rule_cnae_incompativel(ctx: RiskContext, _params: dict) -> str | None:
     expected_tokens = _tokenize(ctx.expected_activity_description)
     expected_tokens |= _cnae_synonym_expansion(ctx.expected_activity_description)
     cnae_tokens = _tokenize(ctx.company.cnae_principal_descricao)
-    if expected_tokens and cnae_tokens and expected_tokens.isdisjoint(cnae_tokens):
+    if (
+        expected_tokens
+        and cnae_tokens
+        and expected_tokens.isdisjoint(cnae_tokens)
+        and not _shares_word_root(expected_tokens, cnae_tokens)
+    ):
         return (
             f"Atividade esperada '{ctx.expected_activity_description}' não tem palavras em "
             f"comum com o CNAE principal '{ctx.company.cnae_principal_descricao}', mesmo "

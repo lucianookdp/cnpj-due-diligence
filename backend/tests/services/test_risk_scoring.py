@@ -144,6 +144,28 @@ def test_cnae_incompativel_still_triggers_when_synonym_group_does_not_apply():
     assert risk_scoring._rule_cnae_incompativel(ctx, {}) is not None
 
 
+def test_cnae_compativel_via_shared_word_root():
+    """A second reported false positive: "atacado" and "atacadista" are the
+    same word with different suffixes, not different vocabulary — a
+    synonym list doesn't scale to this class of mismatch (comércio/
+    comercial, varejo/varejista, ...), so this needs the shared-root check,
+    not another YAML entry.
+    """
+    company = _company(
+        cnae_principal_descricao="Comércio atacadista de produtos alimentícios em geral"
+    )
+    ctx = _ctx(company, expected_activity_description="atacado e varejo")
+
+    assert risk_scoring._rule_cnae_incompativel(ctx, {}) is None
+
+
+def test_cnae_incompativel_still_triggers_when_no_root_is_shared():
+    company = _company(cnae_principal_descricao="Consultoria em tecnologia da informação")
+    ctx = _ctx(company, expected_activity_description="atacado e varejo")
+
+    assert risk_scoring._rule_cnae_incompativel(ctx, {}) is not None
+
+
 # --- endereco_compartilhado ---
 
 
