@@ -17,7 +17,7 @@ as company partners, with the same fields Receita Federal already discloses publ
 - **Backend**: Python, FastAPI, SQLAlchemy, PostgreSQL.
 - **Frontend**: React, TypeScript, Vite, Cytoscape.js (graph view).
 - **Data sources**: Minha Receita, BrasilAPI, Portal da Transparência.
-- **Deploy**: frontend on GitHub Pages, API and database on Render, both free tier.
+- **Deploy**: frontend on GitHub Pages, API and database on Railway (Hobby plan).
 - **Job queue**: Postgres as the queue (no Redis/Celery).
 
 ## Running locally
@@ -64,11 +64,11 @@ docker compose up --build
 
 ## Deploy
 
-`render.yaml` at the repo root configures the API and database on Render (Blueprint). The
-frontend is published to GitHub Pages via GitHub Actions on every push to `main`. Since
-Render's free plan has no always-on worker, a GitHub Actions cron calls an internal endpoint
-every 6 hours to run periodic tasks (refreshing restrictive lists, reprocessing the
-watchlist).
+The API and Postgres database run on Railway, deployed straight from this repo's
+`backend/Dockerfile`. The frontend is published to GitHub Pages via GitHub Actions on every
+push to `main`. A GitHub Actions cron calls an internal endpoint every 6 hours to run periodic
+tasks (refreshing restrictive lists, reprocessing the watchlist), authenticated with a
+`WORKER_TRIGGER_SECRET` shared between Railway and a matching GitHub Actions secret.
 
 ## Configuration
 

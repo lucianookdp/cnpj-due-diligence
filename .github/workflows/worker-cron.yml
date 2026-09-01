@@ -19,4 +19,4 @@ jobs:
         run: |
           curl -sf -X POST \
             -H "X-Worker-Secret: $WORKER_TRIGGER_SECRET" \
-            https://cnpj-due-diligence-api.onrender.com/api/v1/internal/worker/run-once
+            https://cnpj-due-diligence-api-production.up.railway.app/api/v1/internal/worker/run-once

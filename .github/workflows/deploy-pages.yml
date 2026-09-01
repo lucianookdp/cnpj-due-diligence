@@ -39,7 +39,7 @@ jobs:
         env:
           # Points the static build at the live Render backend. Update this if
           # the Render service is ever renamed (see render.yaml).
-          VITE_API_BASE_URL: https://cnpj-due-diligence-api.onrender.com/api/v1
+          VITE_API_BASE_URL: https://cnpj-due-diligence-api-production.up.railway.app/api/v1
         run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
