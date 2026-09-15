@@ -1,5 +1,23 @@
+import { useEffect, useState } from "react";
 import type { Company, RestrictiveListMatch, RiskScore } from "../api/types";
 import { Icon } from "./Icon";
+
+function useCountUp(target: number, durationMs = 700): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    function tick(now: number) {
+      const progress = Math.min((now - start) / durationMs, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, durationMs]);
+  return value;
+}
 
 interface CompanyCardProps {
   company: Company;
@@ -75,8 +93,12 @@ function scoreColorVars(score: number): { bg: string; border: string; text: stri
 
 function RiskScoreCard({ risk }: { risk: RiskScore }) {
   const colors = scoreColorVars(risk.score);
+  const displayedScore = useCountUp(risk.score);
   return (
-    <div className="card" style={{ marginTop: "var(--space-4)", marginBottom: 0 }}>
+    <div
+      className="card animate-fade-in-up"
+      style={{ marginTop: "var(--space-4)", marginBottom: 0 }}
+    >
       <div
         style={{
           display: "flex",
@@ -86,10 +108,10 @@ function RiskScoreCard({ risk }: { risk: RiskScore }) {
         }}
       >
         <div
-          className="score-badge"
+          className="score-badge badge-pop"
           style={{ background: colors.bg, borderColor: colors.border, color: colors.text }}
         >
-          {risk.score}
+          {displayedScore}
         </div>
         <div>
           <div className="section-title" style={{ marginBottom: 0 }}>
@@ -115,7 +137,7 @@ function RiskScoreCard({ risk }: { risk: RiskScore }) {
 
 export function CompanyCard({ company }: CompanyCardProps) {
   return (
-    <div className="card">
+    <div className="card animate-fade-in-up">
       <h2 style={{ marginBottom: 0 }}>{company.razao_social}</h2>
       {company.nome_fantasia && <p className="muted">{company.nome_fantasia}</p>}
 
@@ -165,7 +187,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
         <Icon name="users" size={15} />
         Quadro societário
       </h3>
-      <ul className="partner-list">
+      <ul className="partner-list stagger">
         {company.partners.map((partner) => (
           <li key={`${partner.nome}-${partner.cpf_masked}`}>
             {partner.nome} — {partner.qualificacao} ({partner.faixa_etaria}, {partner.cpf_masked})

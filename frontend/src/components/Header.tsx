@@ -39,7 +39,9 @@ export function Header({ authenticated, theme, onToggleTheme, onLogout }: Header
           aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
           title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
         >
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
+          <span key={theme} className="icon-pop-in">
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
+          </span>
         </button>
       </div>
     </div>
