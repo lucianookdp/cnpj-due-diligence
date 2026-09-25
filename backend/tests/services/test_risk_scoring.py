@@ -1,4 +1,5 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 
 from app.core.rules_config import RuleConfig, RulesConfig
 from app.models import Company, Partnership, Person, RestrictiveListEntry
@@ -239,6 +240,84 @@ def test_qsa_instavel_counts_endings_too():
 
 
 # --- match_lista_restritiva ---
+
+
+# --- socio_faixa_etaria_atipica ---
+
+_ATYPICAL_PARAMS = {
+    "max_young_age": 20,
+    "min_old_age": 81,
+    "max_company_months": 24,
+    "min_high_capital": 500000,
+}
+
+
+def _with_partner(company: Company, faixa: str | None, ended: bool = False) -> Company:
+    person = Person(nome="SOCIO", cpf_masked="***111111**", faixa_etaria=faixa)
+    company.partnerships.append(
+        Partnership(
+            person=person,
+            first_seen_at=datetime.now(UTC),
+            ended_at=datetime.now(UTC) if ended else None,
+        )
+    )
+    return company
+
+
+def test_socio_atipico_triggers_for_teenager_in_new_company():
+    company = _with_partner(
+        _company(data_abertura=(datetime.now(UTC) - timedelta(days=90)).date()),
+        "Entre 13 a 20 anos",
+    )
+
+    reason = risk_scoring._rule_socio_faixa_etaria_atipica(_ctx(company), _ATYPICAL_PARAMS)
+
+    assert reason is not None
+    assert "Entre 13 a 20 anos" in reason
+    assert "SOCIO" not in reason  # the band, never the person's name
+
+
+def test_socio_atipico_triggers_for_over_80_with_high_capital():
+    company = _with_partner(
+        _company(data_abertura=date(2001, 1, 1), capital_social=Decimal(2000000)),
+        "Maiores de 80 anos",
+    )
+
+    assert (
+        risk_scoring._rule_socio_faixa_etaria_atipica(_ctx(company), _ATYPICAL_PARAMS) is not None
+    )
+
+
+def test_socio_atipico_ignores_old_modest_family_company():
+    # An heir under 20 in a 20-year-old small company is ordinary, not a red flag.
+    company = _with_partner(
+        _company(data_abertura=date(2005, 1, 1), capital_social=Decimal(50000)), "Entre 0 a 12 anos"
+    )
+
+    assert risk_scoring._rule_socio_faixa_etaria_atipica(_ctx(company), _ATYPICAL_PARAMS) is None
+
+
+def test_socio_atipico_ignores_typical_ages_and_former_partners():
+    new = (datetime.now(UTC) - timedelta(days=30)).date()
+    assert (
+        risk_scoring._rule_socio_faixa_etaria_atipica(
+            _ctx(_with_partner(_company(data_abertura=new), "Entre 71 a 80 anos")), _ATYPICAL_PARAMS
+        )
+        is None
+    )
+    assert (
+        risk_scoring._rule_socio_faixa_etaria_atipica(
+            _ctx(_with_partner(_company(data_abertura=new), "Entre 13 a 20 anos", ended=True)),
+            _ATYPICAL_PARAMS,
+        )
+        is None
+    )
+    assert (
+        risk_scoring._rule_socio_faixa_etaria_atipica(
+            _ctx(_with_partner(_company(data_abertura=new), "Não se aplica")), _ATYPICAL_PARAMS
+        )
+        is None
+    )
 
 
 def test_lista_restritiva_triggers_when_matches_present():

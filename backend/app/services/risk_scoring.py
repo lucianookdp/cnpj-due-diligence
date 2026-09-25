@@ -202,6 +202,58 @@ def _rule_quadro_societario_instavel(ctx: RiskContext, params: dict) -> str | No
     return None
 
 
+_AGE_RANGE = re.compile(r"(\d+)\D+(\d+)")
+_AGE_ABOVE = re.compile(r"maior\w*\s+de\s+(\d+)")
+
+
+def _age_bounds(faixa_etaria: str | None) -> tuple[int, int] | None:
+    """Receita Federal publishes ages as bands: "Entre 13 a 20 anos",
+    "Maiores de 80 anos". Anything else (blank, "Não se aplica") is unknown.
+    """
+    if not faixa_etaria:
+        return None
+    text = _normalize(faixa_etaria)
+    if match := _AGE_ABOVE.search(text):
+        return int(match.group(1)) + 1, 200
+    if match := _AGE_RANGE.search(text):
+        return int(match.group(1)), int(match.group(2))
+    return None
+
+
+def _rule_socio_faixa_etaria_atipica(ctx: RiskContext, params: dict) -> str | None:
+    max_young = params.get("max_young_age", 20)
+    min_old = params.get("min_old_age", 81)
+
+    atypical_bands: list[str] = []
+    for partnership in ctx.company.partnerships:
+        if partnership.ended_at is not None:
+            continue
+        bounds = _age_bounds(partnership.person.faixa_etaria)
+        if bounds and (bounds[1] <= max_young or bounds[0] >= min_old):
+            atypical_bands.append(partnership.person.faixa_etaria)
+    if not atypical_bands:
+        return None
+
+    max_months = params.get("max_company_months", 24)
+    min_capital = Decimal(str(params.get("min_high_capital", 500000)))
+    context: str | None = None
+    opened = ctx.company.data_abertura
+    if opened is not None and opened > ctx.now.date() - timedelta(
+        days=max_months * _DAYS_PER_MONTH
+    ):
+        context = f"empresa aberta em {opened.strftime('%d/%m/%Y')}, há menos de {max_months} meses"
+    elif ctx.company.capital_social is not None and ctx.company.capital_social >= min_capital:
+        context = f"capital social declarado de R$ {ctx.company.capital_social}"
+    if context is None:
+        return None
+
+    bands = ", ".join(sorted(set(atypical_bands)))
+    return (
+        f"{len(atypical_bands)} sócio(s) na faixa '{bands}' em {context}: perfil comum de sócio "
+        "de fachada ('laranja'). Vale confirmar quem de fato controla a empresa"
+    )
+
+
 def _rule_match_lista_restritiva(ctx: RiskContext, _params: dict) -> str | None:
     if not ctx.restrictive_matches:
         return None
@@ -216,6 +268,7 @@ _RULE_FUNCTIONS: dict[str, RuleFn] = {
     "cnae_incompativel": _rule_cnae_incompativel,
     "endereco_compartilhado": _rule_endereco_compartilhado,
     "quadro_societario_instavel": _rule_quadro_societario_instavel,
+    "socio_faixa_etaria_atipica": _rule_socio_faixa_etaria_atipica,
     "match_lista_restritiva": _rule_match_lista_restritiva,
 }
 

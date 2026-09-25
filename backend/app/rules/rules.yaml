@@ -1,7 +1,7 @@
 # Versioned risk-rule config — weights and thresholds live here, not in code,
 # so tuning them doesn't require a deploy of new logic. Bump `version` on any
 # change; it's stamped on every computed score for audit/reproducibility.
-version: 1
+version: 2
 
 rules:
   - id: empresa_recente
@@ -42,6 +42,20 @@ rules:
     params:
       max_changes: 2
       window_months: 12
+
+  # A partner at the edges of working age is common in real family companies
+  # (inheritance, holdings), so age alone never triggers this — only next to a
+  # brand-new company or a large declared capital, the typical front-partner
+  # ("laranja") pattern. The reason names the age range, never the person.
+  - id: socio_faixa_etaria_atipica
+    label: "Sócio com idade atípica em empresa nova ou de capital alto"
+    weight: 20
+    enabled: true
+    params:
+      max_young_age: 20
+      min_old_age: 81
+      max_company_months: 24
+      min_high_capital: 500000
 
   # Deliberately the highest weight on its own — any hit here should dominate
   # the score regardless of everything else ("peso máximo" per spec).
