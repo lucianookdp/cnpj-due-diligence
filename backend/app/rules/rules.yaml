@@ -1,7 +1,7 @@
 # Versioned risk-rule config — weights and thresholds live here, not in code,
 # so tuning them doesn't require a deploy of new logic. Bump `version` on any
 # change; it's stamped on every computed score for audit/reproducibility.
-version: 2
+version: 3
 
 rules:
   - id: empresa_recente
@@ -56,6 +56,18 @@ rules:
       min_old_age: 81
       max_company_months: 24
       min_high_capital: 500000
+
+  # Federal debt PGFN is actively collecting (not in an installment plan or
+  # suspended by a court), summed across the company's inscriptions. Loaded
+  # quarterly by .github/workflows/pgfn-refresh.yml.
+  - id: divida_ativa_uniao
+    label: "Dívida ativa com a União em cobrança"
+    weight: 25
+    enabled: true
+    params:
+      # Matches the workflow's --min-reais: only companies from here up are
+      # loaded (about 670k of them, ~70 MB), so a lower value here finds nothing more.
+      min_reais: 100000
 
   # Deliberately the highest weight on its own — any hit here should dominate
   # the score regardless of everything else ("peso máximo" per spec).

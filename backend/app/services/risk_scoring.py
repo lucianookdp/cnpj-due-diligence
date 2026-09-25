@@ -11,7 +11,7 @@ import yaml
 from sqlalchemy.orm import Session
 
 from app.core.rules_config import RuleConfig, RulesConfig
-from app.models import Company, RestrictiveListEntry
+from app.models import Company, FederalDebt, RestrictiveListEntry
 from app.repositories import graph_repository
 from app.services import restrictive_list_matching
 
@@ -51,6 +51,8 @@ class RiskContext:
     shared_address_company_count: int
     restrictive_matches: list[RestrictiveListEntry]
     now: datetime
+    # None when the company isn't on PGFN's list above the import threshold.
+    federal_debt: FederalDebt | None = None
 
 
 @dataclass
@@ -254,6 +256,24 @@ def _rule_socio_faixa_etaria_atipica(ctx: RiskContext, params: dict) -> str | No
     )
 
 
+def _brl(cents: int) -> str:
+    return f"R$ {cents / 100:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def _rule_divida_ativa_uniao(ctx: RiskContext, params: dict) -> str | None:
+    debt = ctx.federal_debt
+    min_cents = int(params.get("min_reais", 100000)) * 100
+    if debt is None or debt.amount_cents < min_cents:
+        return None
+    judicial = ", já em execução fiscal" if debt.judicial else ""
+    year, _, quarter = debt.reference.partition("_trimestre_")
+    period = f"{int(quarter)}º trimestre de {year}" if quarter.isdigit() else debt.reference
+    return (
+        f"{_brl(debt.amount_cents)} em dívida ativa da União em cobrança "
+        f"({debt.inscriptions} inscrição(ões){judicial}). Fonte: PGFN, dados de {period}"
+    )
+
+
 def _rule_match_lista_restritiva(ctx: RiskContext, _params: dict) -> str | None:
     if not ctx.restrictive_matches:
         return None
@@ -269,6 +289,7 @@ _RULE_FUNCTIONS: dict[str, RuleFn] = {
     "endereco_compartilhado": _rule_endereco_compartilhado,
     "quadro_societario_instavel": _rule_quadro_societario_instavel,
     "socio_faixa_etaria_atipica": _rule_socio_faixa_etaria_atipica,
+    "divida_ativa_uniao": _rule_divida_ativa_uniao,
     "match_lista_restritiva": _rule_match_lista_restritiva,
 }
 
@@ -312,4 +333,5 @@ def build_context(
         shared_address_company_count=shared_count,
         restrictive_matches=matches,
         now=datetime.now(UTC),
+        federal_debt=db.get(FederalDebt, company.cnpj[:8]),
     )

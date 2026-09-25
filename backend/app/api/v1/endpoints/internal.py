@@ -1,6 +1,7 @@
 import secrets
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_resolver
@@ -9,6 +10,7 @@ from app.core.db import get_db
 from app.providers.lista_suja import ListaSujaProvider
 from app.providers.portal_transparencia import PortalTransparenciaProvider
 from app.providers.resolver import ProviderResolver
+from app.services import federal_debt_import
 from app.worker import run_once
 
 router = APIRouter()
@@ -49,3 +51,27 @@ def run_worker_once(
     lista_suja = ListaSujaProvider(settings.lista_suja_pdf_url, settings.provider_timeout_seconds)
     processed = run_once(db, resolver, portal, lista_suja, settings)
     return {"processed": processed}
+
+
+@router.get("/internal/pgfn/status", dependencies=[Depends(_require_worker_secret)])
+def pgfn_status(db: Session = Depends(get_db)) -> dict:
+    """Which PGFN quarter is loaded, so the refresh workflow can skip the
+    multi-gigabyte download when nothing new has been published."""
+    return federal_debt_import.status(db)
+
+
+@router.post("/internal/pgfn/import", dependencies=[Depends(_require_worker_secret)])
+async def pgfn_import(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Replaces the federal-debt table with a summary built by
+    `python -m app.pgfn_file build` (see .github/workflows/pgfn-refresh.yml)."""
+    body = bytearray()
+    async for chunk in request.stream():
+        body += chunk
+        if len(body) > federal_debt_import.MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="Resumo grande demais")
+    try:
+        reference, rows = await run_in_threadpool(federal_debt_import.parse_summary, bytes(body))
+    except federal_debt_import.InvalidSummaryError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    count = await run_in_threadpool(federal_debt_import.replace_all, db, rows)
+    return {"reference": reference, "companies": count}

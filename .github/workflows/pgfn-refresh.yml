@@ -1,0 +1,53 @@
+name: Refresh PGFN federal debt
+
+# PGFN publishes its federal-debt open data once a quarter, about 1.4 GB
+# zipped. This runner does the heavy lifting (download, filter, sum per
+# company) and uploads only the small summary to the API, so the server
+# never downloads or stores the raw files. See backend/app/pgfn_file.py.
+
+on:
+  schedule:
+    # Monthly. When the loaded quarter is already the newest one, the build
+    # step exits after a few HEAD requests, without downloading anything.
+    - cron: "0 7 5 * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      API: https://cnpj-due-diligence-api-production.up.railway.app/api/v1
+      WORKER_TRIGGER_SECRET: ${{ secrets.WORKER_TRIGGER_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # pgfn_file is stdlib-only, so a pinned interpreter is all it needs.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Find the quarter already loaded
+        id: status
+        run: |
+          reference=$(curl -sf -H "X-Worker-Secret: $WORKER_TRIGGER_SECRET" "$API/internal/pgfn/status" \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["reference"] or "")')
+          echo "reference=$reference" >> "$GITHUB_OUTPUT"
+
+      - name: Build the per-company summary
+        env:
+          LOADED: ${{ steps.status.outputs.reference }}
+        # Standard library only: no dependencies to install for this step.
+        run: python -m app.pgfn_file build --out summary.csv.gz --min-reais 100000 --skip-if "$LOADED"
+
+      - name: Upload it
+        if: hashFiles('backend/summary.csv.gz') != ''
+        run: |
+          curl -sf --max-time 900 -X POST \
+            -H "X-Worker-Secret: $WORKER_TRIGGER_SECRET" \
+            -H "Content-Type: application/gzip" \
+            --data-binary @summary.csv.gz \
+            "$API/internal/pgfn/import"

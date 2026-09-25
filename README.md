@@ -3,9 +3,10 @@
 A due-diligence platform for Brazilian companies, built exclusively on official public data
 sources (Receita Federal, Portal da Transparência, MTE's forced-labor registry). Given a
 CNPJ, it shows cadastral data, the corporate ownership graph (shared partners, shared
-addresses, ownership chains), cross-references it against government restrictive lists, and
+addresses, ownership chains), cross-references it against government restrictive lists and federal debt, and
 computes an explainable 0 to 100 risk score. Dossiers export to PDF. Logged-in users can
-monitor a CNPJ on a watchlist and get alerted when something changes.
+monitor a CNPJ on a watchlist, get alerted when something changes, and check up to 50 CNPJs at
+once from a pasted list or a CSV (read in the browser; only the CNPJs are sent).
 
 **Live demo**: https://lucianookdp.github.io/cnpj-due-diligence/
 
@@ -69,6 +70,12 @@ The API and Postgres database run on Railway, deployed straight from this repo's
 push to `main`. A GitHub Actions cron calls an internal endpoint every 6 hours to run periodic
 tasks (refreshing restrictive lists, reprocessing the watchlist), authenticated with a
 `WORKER_TRIGGER_SECRET` shared between Railway and a matching GitHub Actions secret.
+
+Federal debt ("dívida ativa da União") comes from PGFN's quarterly open data, about 1.4 GB
+zipped. A monthly GitHub Actions job (`pgfn-refresh.yml`) checks whether a new quarter is out,
+and only then downloads it on the runner, keeps companies with at least R$ 100,000 being actively
+collected (about 670,000 of them, ~70 MB), and uploads that small summary to the API with the same secret. The server never
+downloads the raw files, and the table is swapped in one transaction.
 
 ## Configuration
 

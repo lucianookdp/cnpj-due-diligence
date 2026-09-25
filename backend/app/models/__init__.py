@@ -3,6 +3,7 @@ from app.models.base import Base
 from app.models.batch_check import BatchCheck, BatchCheckItem
 from app.models.company import CnaeSecundario, Company
 from app.models.dossier_request import DossierRequest
+from app.models.federal_debt import FederalDebt
 from app.models.partnership import CompanyPartnership, Partnership
 from app.models.person import Person
 from app.models.restrictive_list_entry import RestrictiveListEntry
@@ -19,6 +20,7 @@ __all__ = [
     "Company",
     "CompanyPartnership",
     "DossierRequest",
+    "FederalDebt",
     "Partnership",
     "Person",
     "RestrictiveListEntry",
