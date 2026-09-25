@@ -426,6 +426,13 @@
   font-size: 0.875rem;
 }
 
+/* Same 16px floor as the other fields (see index.css), or iOS zooms in. */
+@media (pointer: coarse) {
+  .batch-textarea {
+    font-size: 16px;
+  }
+}
+
 .batch-score {
   display: inline-block;
   min-width: 2.25rem;
@@ -452,4 +459,30 @@
   background: var(--color-danger-bg);
   border-color: var(--color-danger-border);
   color: var(--color-danger-text);
+}
+
+/* On a phone the four columns don't fit, and scrolling sideways hid the
+   alerts, the column that matters most. Each row becomes a small card. */
+@media (max-width: 600px) {
+  .batch-table thead {
+    display: none;
+  }
+  .batch-table tr {
+    display: block;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .batch-table td {
+    display: flex;
+    gap: var(--space-2);
+    padding: 2px 0;
+    border: 0;
+    white-space: normal !important;
+  }
+  .batch-table td::before {
+    content: attr(data-label);
+    flex: 0 0 4.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
 }

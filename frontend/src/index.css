@@ -529,3 +529,14 @@ th {
 .alert-banner {
   animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* iOS Safari zooms the whole page into any field whose text is under 16px
+   the moment it's tapped; touch screens get 16px fields instead. */
+@media (pointer: coarse) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px;
+  }
+}

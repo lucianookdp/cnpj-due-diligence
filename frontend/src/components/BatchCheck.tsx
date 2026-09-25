@@ -162,7 +162,7 @@ export function BatchCheck({ onError }: BatchCheckProps) {
             )}
           </div>
           <div className="table-scroll">
-            <table>
+            <table className="batch-table">
               <thead>
                 <tr>
                   <th>CNPJ</th>
@@ -174,19 +174,19 @@ export function BatchCheck({ onError }: BatchCheckProps) {
               <tbody>
                 {batch.items.map((item) => (
                   <tr key={item.cnpj}>
-                    <td style={{ whiteSpace: "nowrap" }}>
+                    <td data-label="CNPJ" style={{ whiteSpace: "nowrap" }}>
                       <Link to={`/empresa/${item.cnpj}`}>{formatCnpj(item.cnpj)}</Link>
                     </td>
-                    <td>
+                    <td data-label="Empresa">
                       {item.razao_social ?? <span className="text-faint">{statusLabel(item.status)}</span>}
                       {item.situacao_cadastral && item.situacao_cadastral !== "ATIVA" && (
                         <div className="text-sm muted">{item.situacao_cadastral}</div>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Score">
                       {item.score !== null ? <span className={scoreClass(item.score)}>{item.score}</span> : "—"}
                     </td>
-                    <td className="text-sm">{item.flags.length > 0 ? item.flags.join(" · ") : "—"}</td>
+                    <td data-label="Alertas" className="text-sm">{item.flags.length > 0 ? item.flags.join(" · ") : "—"}</td>
                   </tr>
                 ))}
               </tbody>
