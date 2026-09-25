@@ -1,4 +1,12 @@
-import type { ApiError, Company, Graph, GraphDelta, TokenResponse, WatchlistEntry } from "./types";
+import type {
+  ApiError,
+  BatchCheck,
+  Company,
+  Graph,
+  GraphDelta,
+  TokenResponse,
+  WatchlistEntry,
+} from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 const TOKEN_STORAGE_KEY = "radar_cnpj_token";
@@ -110,4 +118,20 @@ export function expandCompanyNode(companyId: string): Promise<GraphDelta> {
 
 export function expandPersonNode(personId: string): Promise<GraphDelta> {
   return request<GraphDelta>(`/graph/expand/person/${personId}`, { method: "POST" });
+}
+
+export function createBatchCheck(cnpjs: string[]): Promise<BatchCheck> {
+  return request<BatchCheck>("/batches", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ cnpjs }),
+  });
+}
+
+export function getBatchCheck(id: string): Promise<BatchCheck> {
+  return request<BatchCheck>(`/batches/${id}`, { headers: authHeaders() });
+}
+
+export function listBatchChecks(): Promise<BatchCheck[]> {
+  return request<BatchCheck[]>("/batches", { headers: authHeaders() });
 }

@@ -17,7 +17,7 @@ from app.providers.lista_suja import ListaSujaProvider
 from app.providers.portal_transparencia import PortalTransparenciaProvider
 from app.providers.resolver import ProviderResolver, build_default_resolver
 from app.repositories import job_repository
-from app.services import reprocessing, scheduler
+from app.services import batch_check, reprocessing, scheduler
 from app.services.restrictive_list_ingestion import ingest_all
 
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +70,7 @@ def run_once(
     scheduler.enqueue_due_jobs(
         db, settings.reprocess_interval_hours, settings.restrictive_list_ingest_interval_hours
     )
+    batch_check.delete_expired(db)
 
     processed = 0
     while True:

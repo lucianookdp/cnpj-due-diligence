@@ -125,3 +125,19 @@ export interface WatchlistEntry {
   situacao_cadastral: string | null;
   recent_alerts: WatchlistAlert[];
 }
+
+export interface BatchCheckItem {
+  cnpj: string;
+  status: "pending" | "done" | "not_found" | "error";
+  score: number | null;
+  razao_social: string | null;
+  situacao_cadastral: string | null;
+  flags: string[];
+}
+
+export interface BatchCheck {
+  id: string;
+  status: "processing" | "done" | "interrupted";
+  created_at: string;
+  items: BatchCheckItem[];
+}

@@ -5,6 +5,7 @@ import type { Company, Graph } from "../api/types";
 import { CompanyCard } from "../components/CompanyCard";
 import { GraphView } from "../components/GraphView";
 import { Icon } from "../components/Icon";
+import { BatchCheck } from "../components/BatchCheck";
 import { Watchlist } from "../components/Watchlist";
 
 interface HomePageProps {
@@ -173,6 +174,7 @@ export function HomePage({ authenticated }: HomePageProps) {
       {authenticated && (
         <div className="auth-wrap">
           <Watchlist key={watchlistVersion} onError={setError} />
+          <BatchCheck onError={setError} />
         </div>
       )}
 
